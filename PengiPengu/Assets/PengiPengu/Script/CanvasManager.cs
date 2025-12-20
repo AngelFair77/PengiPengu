@@ -1,9 +1,11 @@
 using UnityEngine;
+using TMPro;
 
 public class CanvasManager : MonoBehaviour
 {
     // Heryerden erişilebilen tek kopya
     public static CanvasManager instance;
+    public TextMeshProUGUI mainFishText;
 
     void Awake()
     {
@@ -17,6 +19,14 @@ public class CanvasManager : MonoBehaviour
         {
             // Eğer zaten bir CanvasManager varsa (diğer sahneden gelen), bu fazlalık demektir.
             Destroy(gameObject); // Fazlalığı yok et
+        }
+    }
+    public void UpdateFishUI()
+    {
+        if (mainFishText != null && GameManager.instance != null)
+        {
+            // GameManager'daki güncel sayıyı alıp ekrana yazıyoruz
+            mainFishText.text = "Balık: " + GameManager.instance.fishCount;
         }
     }
 }

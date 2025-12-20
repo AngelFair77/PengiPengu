@@ -26,16 +26,24 @@ public class FishCatch : MonoBehaviour
 
     private void CatchFish()
     {
-        // Karakterin üzerindeki PlayerInventory scriptine ulaşmaya çalış
+        // 1. Envantere ekle (Senin eski sistemin)
         if (playerObject != null)
         {
             PlayerInventory inventory = playerObject.GetComponent<PlayerInventory>();
-            
-            if (inventory != null)
-            {
-                inventory.AddFish(fishAmount); // Envantere balığı ekle
-                Debug.Log("Balık yakalandı! Toplam: " + inventory.currentFishCount);
-            }
+            if (inventory != null) inventory.AddFish(fishAmount);
+        }
+
+        // 2. GameManager'a ekle (Upgrade sistemi için)
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.fishCount += fishAmount;
+        }
+
+        // --- 3. EKRANI GÜNCELLE (YENİ KISIM) ---
+        // CanvasManager'a "Yazıyı yenile" komutu gönderiyoruz
+        if (CanvasManager.instance != null)
+        {
+            CanvasManager.instance.UpdateFishUI();
         }
     }
 

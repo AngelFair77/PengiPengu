@@ -10,6 +10,10 @@ public class GameManager : MonoBehaviour
     public float maxHeat = 100f;
     public int fishCount = 0;
 
+    
+    [Header("Upgrade Seviyeleri")]
+    public int healthUpgradeLevel = 0; // 0: Hiç alınmadı, 1: Seviye 1, 2: Seviye 2, 3: Max
+    
     // --- BÖLÜM 2: Işınlanma Verileri ---
     [Header("Işınlanma Hedefi")]
     public string targetSpawnPoint; // Gideceğimiz noktanın adı
