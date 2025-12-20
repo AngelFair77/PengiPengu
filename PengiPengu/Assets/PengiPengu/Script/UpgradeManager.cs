@@ -5,35 +5,45 @@ using TMPro; // TextMeshPro için
 
 public class UpgradeManager : MonoBehaviour
 {
-    [Header("UI Bağlantıları")]
-    public GameObject upgradeMenuPanel;   // Canvas içindeki Upgrade Panelimiz
+    [Header("Genel UI Bağlantıları")]
+    public GameObject upgradeMenuPanel;   // Canvas içindeki Upgrade Paneli
     public TextMeshProUGUI fishCountText; // Paneldeki "Balık: 5" yazısı
 
+    // ---------------------------------------------------------
+    // UPGRADE 1: CAN (ISI) SİSTEMİ
+    // ---------------------------------------------------------
     [Header("Upgrade 1: Max Isı (Can) Ayarları")]
     public Button healthUpgradeButton;       
     public TextMeshProUGUI healthButtonText; 
     
-    // Fiyatlar: 1. seviye 1 balık, 2. seviye 5 balık, 3. seviye 10 balık
-    public int[] healthCosts = { 1, 5, 10 }; 
-    public float heatIncreaseAmount = 20f; 
+    public int[] healthCosts = { 1, 5, 10 }; // Fiyatlar
+    public float heatIncreaseAmount = 20f;   // Her seviyede ne kadar artacak
+
+    // ---------------------------------------------------------
+    // UPGRADE 2: HIZ (SPEED) SİSTEMİ
+    // ---------------------------------------------------------
+    [Header("Upgrade 2: Hız (Speed) Ayarları")]
+    public Button speedUpgradeButton;       
+    public TextMeshProUGUI speedButtonText; 
+    
+    public int[] speedCosts = { 2, 6, 12 };  // Fiyatlar (İstediğin gibi değiştir)
+    public float speedIncreaseAmount = 1f;   // Her seviyede hız ne kadar artacak
 
     private bool isMenuOpen = false;
 
     void Update()
     {
-        // 1. ÖNCE SAHNE KONTROLÜ
-        // Eğer şu anki sahne "Cave" (veya senin mağara sahnenin adı neyse) DEĞİLSE
+        // 1. SAHNE KONTROLÜ
         string activeScene = SceneManager.GetActiveScene().name;
         
-        // Buraya kendi mağara sahnenin tam adını yaz: "CaveScene" vb.
-        if (activeScene != "Cave") 
+        // Buraya mağara sahnenin adını yaz (Boşlukları temizleyerek kontrol eder)
+        if (activeScene.Trim() != "Cave") 
         {
-            // Eğer yanlışlıkla menü açık kaldıysa kapat ve fonksiyonu bitir
             if (isMenuOpen) CloseMenu();
             return; 
         }
 
-        // 2. SADECE MAĞARADAYSAK BURASI ÇALIŞIR
+        // 2. MENÜ AÇMA / KAPAMA
         if (Input.GetKeyDown(KeyCode.E))
         {
             if (isMenuOpen)
@@ -46,93 +56,125 @@ public class UpgradeManager : MonoBehaviour
     void OpenMenu()
     {
         isMenuOpen = true;
-        upgradeMenuPanel.SetActive(true); // Paneli görünür yap
-        UpdateUI(); // Verileri yenile
-        
-        // Menü açılınca oyunu dondurmak istersen:
-        // Time.timeScale = 0; 
+        upgradeMenuPanel.SetActive(true); 
+        UpdateUI(); 
     }
 
     void CloseMenu()
     {
         isMenuOpen = false;
-        upgradeMenuPanel.SetActive(false); // Paneli gizle
-        
-        // Oyunu devam ettir:
-        // Time.timeScale = 1;
+        upgradeMenuPanel.SetActive(false); 
     }
 
+    // --- FONKSİYON 1: CAN YÜKSELTME ---
     public void BuyHealthUpgrade()
     {
         int currentLevel = GameManager.instance.healthUpgradeLevel;
 
-        // Max seviye kontrolü
-        if (currentLevel >= 3) 
-        {
-            Debug.Log("Zaten Max Seviye!");
-            return;
-        }
+        if (currentLevel >= 3) return; // Max seviye kontrolü
 
-        // Dizi hatası olmaması için güvenlik kontrolü
-        if (currentLevel >= healthCosts.Length)
-        {
-            Debug.LogError("HATA: healthCosts listesi Inspector'da eksik ayarlanmış! Listeyi kontrol et.");
-            return;
-        }
+        // Dizi taşma kontrolü
+        if (currentLevel >= healthCosts.Length) return;
 
         int cost = healthCosts[currentLevel];
 
-        // --- HATA AYIKLAMA (DEBUG) SATIRI ---
-        Debug.Log($"Mevcut Balık: {GameManager.instance.fishCount} | İstenen Ücret: {cost} | Şu anki Seviye: {currentLevel}");
-        // ------------------------------------
-
         if (GameManager.instance.fishCount >= cost)
         {
+            // Ödeme ve İşlem
             GameManager.instance.fishCount -= cost;
             GameManager.instance.healthUpgradeLevel++;
             GameManager.instance.maxHeat += heatIncreaseAmount;
+            
+            // Canı fulle
             GameManager.instance.currentHeat = GameManager.instance.maxHeat;
 
-            UpdateHealthBarVisuals();
-            UpdateUI();
+            // Görselleri Güncelle
+            UpdateHealthBarVisuals(); // Can barını uzat
+            UpdateUI(); // Menüdeki fiyatları yenile
             
-            Debug.Log("Satın alma başarılı!");
-        }
-        if (CanvasManager.instance != null)
-        {
-            CanvasManager.instance.UpdateFishUI();
+            // Ana Ekrandaki Balık Sayısını Güncelle
+            if (CanvasManager.instance != null)
+                CanvasManager.instance.UpdateFishUI();
+            
+            Debug.Log("Can Yükseltildi!");
         }
         else
         {
-            Debug.Log("Yetersiz Balık Uyarısı!");
+            Debug.Log("Yetersiz Balık (Can Upgrade için)!");
         }
     }
 
+    // --- FONKSİYON 2: HIZ YÜKSELTME ---
+    public void BuySpeedUpgrade()
+    {
+        int currentLevel = GameManager.instance.speedUpgradeLevel;
+
+        if (currentLevel >= 3) return; // Max seviye kontrolü
+
+        // Dizi taşma kontrolü
+        if (currentLevel >= speedCosts.Length) return;
+
+        int cost = speedCosts[currentLevel];
+
+        if (GameManager.instance.fishCount >= cost)
+        {
+            // Ödeme ve İşlem
+            GameManager.instance.fishCount -= cost;
+            GameManager.instance.speedUpgradeLevel++;
+            GameManager.instance.moveSpeed += speedIncreaseAmount;
+
+            // Görselleri Güncelle
+            UpdateUI(); // Menüdeki fiyatları yenile
+
+            // Ana Ekrandaki Balık Sayısını Güncelle
+            if (CanvasManager.instance != null)
+                CanvasManager.instance.UpdateFishUI();
+
+            Debug.Log("Hız Yükseltildi! Yeni Hız: " + GameManager.instance.moveSpeed);
+        }
+        else
+        {
+            Debug.Log("Yetersiz Balık (Hız Upgrade için)!");
+        }
+    }
+
+    // --- UI GÜNCELLEME ---
     void UpdateUI()
     {
-        // 1. Balık Sayısını GameManager'dan çekip yazdır
+        // Balık Sayısı
         if (fishCountText != null)
             fishCountText.text = "Balık: " + GameManager.instance.fishCount;
 
-        // 2. Buton Durumunu Güncelle
-        int currentLevel = GameManager.instance.healthUpgradeLevel;
-
-        if (currentLevel < 3)
+        // 1. CAN BUTONU DURUMU
+        int hpLevel = GameManager.instance.healthUpgradeLevel;
+        if (hpLevel < 3)
         {
-            int cost = healthCosts[currentLevel];
-            healthButtonText.text = "Isı Kapasitesi (+20)\n(Seviye " + (currentLevel + 1) + ")\nFiyat: " + cost + " Balık";
+            healthButtonText.text = "Isı Kapasitesi (+20)\n(Lv " + (hpLevel + 1) + ")\nFiyat: " + healthCosts[hpLevel];
             healthUpgradeButton.interactable = true;
         }
         else
         {
-            healthButtonText.text = "Isı Kapasitesi\nMAX SEVİYE";
+            healthButtonText.text = "Isı: MAX";
             healthUpgradeButton.interactable = false;
+        }
+
+        // 2. HIZ BUTONU DURUMU
+        int spdLevel = GameManager.instance.speedUpgradeLevel;
+        if (spdLevel < 3)
+        {
+            speedButtonText.text = "Hız Arttır (+" + speedIncreaseAmount + ")\n(Lv " + (spdLevel + 1) + ")\nFiyat: " + speedCosts[spdLevel];
+            speedUpgradeButton.interactable = true;
+        }
+        else
+        {
+            speedButtonText.text = "Hız: MAX";
+            speedUpgradeButton.interactable = false;
         }
     }
 
+    // Can Barı Görselini Güncelleme Yardımcısı
     void UpdateHealthBarVisuals()
     {
-        // HeatSlider da aynı Canvas'ın içinde olduğu için isminden bulabiliriz
         GameObject sliderObj = GameObject.Find("HeatSlider");
         if (sliderObj != null)
         {

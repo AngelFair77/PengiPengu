@@ -4,37 +4,27 @@ using UnityEngine.SceneManagement;
 
 public class HealthBar : MonoBehaviour
 {
-    [Header("Isı Ayarları")]
-    public float maxHeat = 100f;
-    public float currentHeat;
-
-    [Header("Değişim Hızları")]
+    // ARTIK BURADA "maxHeat" DEĞİŞKENİ YOK!
+    // Her şeyi GameManager'dan soracağız.
+    
     public float outdoorDecayRate = 2f; 
-    public float indoorRegenRate = 5f; 
+    public float indoorRegenRate = 5f;  
 
     public Slider heatBarSlider;
 
     void Start()
     {
-        // 1. Slider'ı isminden bul ve bağla
         GameObject sliderObj = GameObject.Find("HeatSlider");
         if (sliderObj != null)
         {
             heatBarSlider = sliderObj.GetComponent<Slider>();
-            heatBarSlider.maxValue = maxHeat;
             
-            // Veriyi GameManager'dan çek
+            // Başlangıçta Slider'ın sınırını GameManager'dan al
             if (GameManager.instance != null)
-                currentHeat = GameManager.instance.currentHeat;
-            else
-                currentHeat = maxHeat;
-
-            heatBarSlider.value = currentHeat;
-        }
-        else
-        {
-            // Hata vermemesi için uyarıyı silebiliriz veya bırakabiliriz
-            // Debug.LogError("HeatSlider bulunamadı!");
+            {
+                heatBarSlider.maxValue = GameManager.instance.maxHeat;
+                heatBarSlider.value = GameManager.instance.currentHeat;
+            }
         }
     }
 
@@ -42,33 +32,29 @@ public class HealthBar : MonoBehaviour
     {
         if (GameManager.instance == null) return;
 
-        // Sahne ismini al
         string activeScene = SceneManager.GetActiveScene().name;
 
-        // --- MANTIK KISMI ---
-        
-        // 1. Durum: Eğer sahne "IcePlace" ise -> Can AZALSIN
-        // (Buradaki "IcePlace" yazısının Unity'deki sahne adınla birebir aynı olduğundan emin ol)
+        // IcePlace -> Can Azalır
         if (activeScene == "IcePlace") 
         {
             TakeHeatDamage(outdoorDecayRate * Time.deltaTime);
         }
-        // 2. Durum: Eğer sahne "Cave" ise -> Can ARTSIN
-        // (Buradaki "Cave" yazısını kendi mağara sahne adınla değiştir. Örn: "CaveScene")
+        // Cave -> Can Artar
         else if (activeScene == "Cave" || activeScene == "CaveScene") 
         {
             HealHeat(indoorRegenRate * Time.deltaTime);
         }
+        
+        // Slider'ın max değerini sürekli kontrol et (Upgrade anında yansıması için)
+        if (heatBarSlider != null)
+        {
+             // Eğer upgrade yaptıysak slider'ın boyunu uzat
+             if (heatBarSlider.maxValue != GameManager.instance.maxHeat)
+             {
+                 heatBarSlider.maxValue = GameManager.instance.maxHeat;
+             }
+        }
     }
-
-    // --- HATAYI ÇÖZEN KISIM BURASI ---
-    // CaveTrigger scripti bu fonksiyonu aradığı için ekledik.
-    // Ancak içi boş, çünkü artık yukarıdaki Update fonksiyonu sahneye göre karar veriyor.
-    public void SetCaveStatus(bool status)
-    {
-        // Bu fonksiyon artık devre dışı ama hatayı önlemek için burada duruyor.
-    }
-    // ----------------------------------
 
     public void TakeHeatDamage(float amount)
     {
@@ -77,14 +63,25 @@ public class HealthBar : MonoBehaviour
         
         if (GameManager.instance.currentHeat <= 0)
         {
-            Debug.Log("Penguen Dondu!");
+            Debug.Log("Öldün!");
+            // Ölüm ekranı veya sahne yenileme kodu buraya...
         }
     }
 
     public void HealHeat(float amount)
     {
         GameManager.instance.currentHeat += amount;
-        GameManager.instance.currentHeat = Mathf.Clamp(GameManager.instance.currentHeat, 0, maxHeat); 
+
+        // --- EN ÖNEMLİ DEĞİŞİKLİK BURADA ---
+        // Eskiden burada kendi "maxHeat" değişkenine bakıyordu (o da 100'dü).
+        // Şimdi GameManager'ın "maxHeat" değişkenine bakıyor.
+        GameManager.instance.currentHeat = Mathf.Clamp(
+            GameManager.instance.currentHeat, 
+            0, 
+            GameManager.instance.maxHeat 
+        ); 
+        // -----------------------------------
+
         UpdateUI();
     }
 
@@ -94,5 +91,9 @@ public class HealthBar : MonoBehaviour
         {
             heatBarSlider.value = GameManager.instance.currentHeat;
         }
+    }
+    public void SetCaveStatus(bool status) 
+    {
+        // Burası bilerek boş bırakıldı.
     }
 }
