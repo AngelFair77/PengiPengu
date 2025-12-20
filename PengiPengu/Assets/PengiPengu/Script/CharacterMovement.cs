@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterMovement : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class CharacterMovement : MonoBehaviour
     private Rigidbody2D fizik;
     public Vector3 vec;
 
+    
+    
+    
     void Start()
     {
         fizik = GetComponent<Rigidbody2D>();
