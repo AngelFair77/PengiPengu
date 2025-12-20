@@ -3,13 +3,12 @@ using UnityEngine;
 public class FishCatch : MonoBehaviour
 {
     [Header("Balık Yakalama Ayarları")]
-    [Tooltip("Balık yakalamak için alanda durulması gereken süre (saniye)")]
     public float timeToCatchFish = 5f; 
-    public int fishAmount = 1; // Yakalanan balık miktarı
+    public int fishAmount = 1; 
 
     private float catchTimer = 0f;
     private bool playerInZone = false;
-    private GameObject playerObject; // Penguen objesini tutar
+    private GameObject playerObject; 
 
     void Update()
     {
@@ -20,17 +19,24 @@ public class FishCatch : MonoBehaviour
             if (catchTimer >= timeToCatchFish)
             {
                 CatchFish();
-                catchTimer = 0f; // Yeni balık için sayacı sıfırla
+                catchTimer = 0f; 
             }
         }
     }
 
     private void CatchFish()
     {
-        // TO-DO: Inventory/Güçlendirme sistemine balık ekle
-        Debug.Log(fishAmount + " adet balık yakalandı! Güçlendirme için hazır.");
-        
-        // Bu alana balık yakalama efekti/sesi eklenebilir.
+        // Karakterin üzerindeki PlayerInventory scriptine ulaşmaya çalış
+        if (playerObject != null)
+        {
+            PlayerInventory inventory = playerObject.GetComponent<PlayerInventory>();
+            
+            if (inventory != null)
+            {
+                inventory.AddFish(fishAmount); // Envantere balığı ekle
+                Debug.Log("Balık yakalandı! Toplam: " + inventory.currentFishCount);
+            }
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -39,7 +45,7 @@ public class FishCatch : MonoBehaviour
         {
             playerInZone = true;
             playerObject = other.gameObject;
-            catchTimer = 0f; // Alana girince sayacı sıfırla
+            catchTimer = 0f; 
         }
     }
 

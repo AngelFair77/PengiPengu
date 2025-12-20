@@ -16,7 +16,7 @@ public class Projectile : MonoBehaviour
         // Kar topunun çarptığı objede Player tag'i varsa
         if (other.CompareTag("Player"))
         {
-            HeatBarManager heatManager = other.GetComponent<HeatBarManager>();
+            HealthBar heatManager = other.GetComponent<HealthBar>();
             
             if (heatManager != null)
             {
