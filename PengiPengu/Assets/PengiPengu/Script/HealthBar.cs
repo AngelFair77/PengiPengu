@@ -1,93 +1,98 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 public class HealthBar : MonoBehaviour
 {
-    
     [Header("Isı Ayarları")]
     public float maxHeat = 100f;
     public float currentHeat;
 
-    [Header("Isı Değişim Hızları")]
-    [Tooltip("Dışarıda saniyede kaybedilen ısı miktarı")]
+    [Header("Değişim Hızları")]
     public float outdoorDecayRate = 2f; 
-    [Tooltip("Mağarada saniyede kazanılan ısı miktarı")]
     public float indoorRegenRate = 5f; 
-    
-    [Header("UI Bağlantıları")]
-    public Slider heatBarSlider; 
-    
-    // Isı Yönetimi Değişkenleri
-    private bool isInsideCave = false; // Karakterin şu an nerede olduğunu tutar
+
+    public Slider heatBarSlider;
 
     void Start()
     {
-        currentHeat = maxHeat;
-        
-        // Slider başlangıç ayarları
-        if (heatBarSlider != null)
+        // 1. Slider'ı isminden bul ve bağla
+        GameObject sliderObj = GameObject.Find("HeatSlider");
+        if (sliderObj != null)
         {
+            heatBarSlider = sliderObj.GetComponent<Slider>();
             heatBarSlider.maxValue = maxHeat;
+            
+            // Veriyi GameManager'dan çek
+            if (GameManager.instance != null)
+                currentHeat = GameManager.instance.currentHeat;
+            else
+                currentHeat = maxHeat;
+
             heatBarSlider.value = currentHeat;
+        }
+        else
+        {
+            // Hata vermemesi için uyarıyı silebiliriz veya bırakabiliriz
+            // Debug.LogError("HeatSlider bulunamadı!");
         }
     }
 
     void Update()
     {
-        // Isı Yönetimi
-        if (isInsideCave)
+        if (GameManager.instance == null) return;
+
+        // Sahne ismini al
+        string activeScene = SceneManager.GetActiveScene().name;
+
+        // --- MANTIK KISMI ---
+        
+        // 1. Durum: Eğer sahne "IcePlace" ise -> Can AZALSIN
+        // (Buradaki "IcePlace" yazısının Unity'deki sahne adınla birebir aynı olduğundan emin ol)
+        if (activeScene == "IcePlace") 
         {
-            // Mağaradayken ısıyı artır
-            HealHeat(indoorRegenRate * Time.deltaTime);
-        }
-        else
-        {
-            // Dışarıdayken ısıyı azalt
             TakeHeatDamage(outdoorDecayRate * Time.deltaTime);
         }
-    }
-
-    // Isı kaybetme (Dışarıda durma veya kar topu hasarı)
-    public void TakeHeatDamage(float amount)
-    {
-        currentHeat -= amount;
-        UpdateHeatBar();
-
-        if (currentHeat <= 0)
+        // 2. Durum: Eğer sahne "Cave" ise -> Can ARTSIN
+        // (Buradaki "Cave" yazısını kendi mağara sahne adınla değiştir. Örn: "CaveScene")
+        else if (activeScene == "Cave" || activeScene == "CaveScene") 
         {
-            Die();
+            HealHeat(indoorRegenRate * Time.deltaTime);
         }
     }
 
-    // Isı kazanma (Mağarada durma)
-    public void HealHeat(float amount)
+    // --- HATAYI ÇÖZEN KISIM BURASI ---
+    // CaveTrigger scripti bu fonksiyonu aradığı için ekledik.
+    // Ancak içi boş, çünkü artık yukarıdaki Update fonksiyonu sahneye göre karar veriyor.
+    public void SetCaveStatus(bool status)
     {
-        currentHeat += amount;
-        // Isının Max değeri geçmemesini sağla
-        currentHeat = Mathf.Clamp(currentHeat, 0, maxHeat); 
-        UpdateHeatBar();
+        // Bu fonksiyon artık devre dışı ama hatayı önlemek için burada duruyor.
+    }
+    // ----------------------------------
+
+    public void TakeHeatDamage(float amount)
+    {
+        GameManager.instance.currentHeat -= amount;
+        UpdateUI();
+        
+        if (GameManager.instance.currentHeat <= 0)
+        {
+            Debug.Log("Penguen Dondu!");
+        }
     }
 
-    void UpdateHeatBar()
+    public void HealHeat(float amount)
+    {
+        GameManager.instance.currentHeat += amount;
+        GameManager.instance.currentHeat = Mathf.Clamp(GameManager.instance.currentHeat, 0, maxHeat); 
+        UpdateUI();
+    }
+
+    void UpdateUI()
     {
         if (heatBarSlider != null)
         {
-            heatBarSlider.value = currentHeat;
+            heatBarSlider.value = GameManager.instance.currentHeat;
         }
     }
-
-    void Die()
-    {
-        Debug.Log("Penguen Dondu! Oyun Bitti.");
-        // Gerekli oyun sonu işlemleri buraya eklenecek
-    }
-
-    // Mağara Girişi/Çıkışı Kontrolü için Harici Fonksiyon
-    public void SetCaveStatus(bool isInside)
-    {
-        isInsideCave = isInside;
-        Debug.Log("Penguen: " + (isInside ? "Mağaraya girdi." : "Dışarı çıktı."));
-    }
-    
 }
