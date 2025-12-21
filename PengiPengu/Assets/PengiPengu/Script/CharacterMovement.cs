@@ -13,6 +13,8 @@ public class CharacterMovement : MonoBehaviour
     private GameObject hedefBuzObjesi; // Hangi buzu kırıyoruz?
     // -----------------------------
 
+    public GameObject atkiObjesi; // Editörden atkıyı buraya sürükleyeceğiz
+    
     [Header("Ses Ayarları")]
     public AudioClip walkSound;   
     public AudioClip breakSound;  
@@ -51,8 +53,19 @@ public class CharacterMovement : MonoBehaviour
     {
         karakterHareket();
         BuzKirmaIslemi(); // Yeni fonksiyonu her kare çalıştırıyoruz
+        AtkiKontrol();
     }
-
+    void AtkiKontrol()
+    {
+        // GameManager var mı ve Atkı objesi atandı mı?
+        if (GameManager.instance != null && atkiObjesi != null)
+        {
+            // EĞER Health Upgrade Level 1 veya daha büyükse atkıyı göster
+            bool atkisiOlsun = GameManager.instance.healthUpgradeLevel >= 1;
+            
+            atkiObjesi.SetActive(atkisiOlsun);
+        }
+    }
     void karakterHareket()
     {
         float moveX = 0f;

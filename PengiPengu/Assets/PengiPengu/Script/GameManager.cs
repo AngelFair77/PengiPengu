@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Oyun Kaynakları")]
     public int fishCount = 0; // Toplanan Balık
+    
+    public bool hasColdResist = false; // Soğuğa dayanıklılık alındı mı?
 
     [Header("Isı (Can) Sistemi")]
     public float currentHeat = 100f;

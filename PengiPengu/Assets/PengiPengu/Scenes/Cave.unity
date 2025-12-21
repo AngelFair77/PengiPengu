@@ -138,6 +138,26 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5382279710343253861, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5382279710343253861, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5382279710343253861, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 23981516}
+    - target: {fileID: 5382279710343253861, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5382279710343253861, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: UpgradeManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 7608777306317459636, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
       propertyPath: m_Name
       value: Canvas
@@ -251,6 +271,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+--- !u!1 &23981516 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7608777306317459636, guid: 012c40faafc0a4010a9463d99d014245, type: 3}
+  m_PrefabInstance: {fileID: 23981515}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &41742264
 GameObject:
   m_ObjectHideFlags: 0
