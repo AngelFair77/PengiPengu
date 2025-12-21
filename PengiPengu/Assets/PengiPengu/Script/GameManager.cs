@@ -23,7 +23,31 @@ public class GameManager : MonoBehaviour
     // --- İŞTE EKSİK OLAN VE HATAYA SEBEP OLAN SATIR ---
     public string targetSpawnPoint; 
     // --------------------------------------------------
-
+    void Update()
+    {
+        // Can azalma mantığı (Zaten varsa burayı kendine göre uyarla)
+        if (currentHeat > 0)
+        {
+            // Zamanla azalma (Örnek: Saniyede 1 azalır)
+            // currentHeat -= Time.deltaTime; 
+            
+            // Not: Senin kodunda canı düşmanlar veya ortam azaltıyorsa burayı boş bırakabilirsin.
+        }
+        
+        // ÖLÜM KONTROLÜ
+        if (currentHeat <= 0)
+        {
+            currentHeat = 0; // Eksiye düşmesin
+            
+            // Eğer CanvasManager varsa Kaybetme ekranını aç
+            if (CanvasManager.instance != null)
+            {
+                // Sürekli çağırmasın diye bir kontrol koyabilirsin ama 
+                // Time.timeScale = 0 olacağı için tek sefer çalışır.
+                CanvasManager.instance.ShowGameOver();
+            }
+        }
+    }
     void Awake()
     {
         // Singleton Yapısı
@@ -37,4 +61,5 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    
 }

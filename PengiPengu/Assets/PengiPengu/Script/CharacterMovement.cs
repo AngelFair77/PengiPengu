@@ -7,35 +7,50 @@ public class CharacterMovement : MonoBehaviour
 
     public bool Kazma = false;
     
-    public float buzCan = 100f; // Buzun canını burada tutuyoruz
+    // --- BUZ KIRMA DEĞİŞKENLERİ ---
+    public float buzCan = 100f; 
+    private bool buzunUstunde = false; // Şu an buzun üstünde miyiz?
+    private GameObject hedefBuzObjesi; // Hangi buzu kırıyoruz?
+    // -----------------------------
+
+    [Header("Ses Ayarları")]
+    public AudioClip walkSound;   
+    public AudioClip breakSound;  
     
-    // ARTIK BURADAKİ "int Hiz = 5;" SATIRINI SİLİYORUZ VEYA KULLANMIYORUZ.
+    private AudioSource walkSource; 
+    private AudioSource sfxSource;  
+
+    private float nextBreakSoundTime = 0f;
 
     void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (instance == null) { instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
     }
 
     void Start()
     {
         fizik = GetComponent<Rigidbody2D>();
-        if (GameManager.instance != null)
-        {
-            Kazma = GameManager.instance.hasPickaxe;
-        }
+        
+        // Ses Kaynaklarını Oluştur
+        walkSource = gameObject.AddComponent<AudioSource>();
+        walkSource.loop = true;          
+        walkSource.playOnAwake = false;  
+        walkSource.volume = 1f;          
+        if (walkSound != null) walkSource.clip = walkSound;
+
+        sfxSource = gameObject.AddComponent<AudioSource>();
+        sfxSource.loop = false;          
+        sfxSource.playOnAwake = false;
+        sfxSource.volume = 1f;
+
+        if (GameManager.instance != null) Kazma = GameManager.instance.hasPickaxe;
     }
 
     void Update()
     {
         karakterHareket();
+        BuzKirmaIslemi(); // Yeni fonksiyonu her kare çalıştırıyoruz
     }
 
     void karakterHareket()
@@ -43,58 +58,93 @@ public class CharacterMovement : MonoBehaviour
         float moveX = 0f;
         float moveY = 0f;
         
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.A)) 
         {
             moveX = -1;
-            transform.localScale = new Vector3(-1, 1, 1);
+            transform.localScale = new Vector3(1, 1, 1); 
         }
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.D)) 
         {
             moveX = 1;
-            transform.localScale = new Vector3(1, 1, 1);
+            transform.localScale = new Vector3(-1, 1, 1); 
         }
-        if (Input.GetKey(KeyCode.W))
-        {
-            moveY = 1;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            moveY = -1;
-        }
+        if (Input.GetKey(KeyCode.W)) moveY = 1;
+        if (Input.GetKey(KeyCode.S)) moveY = -1;
         
         if (fizik != null && GameManager.instance != null)
         {
-            // DEĞİŞİKLİK BURADA:
-            // "Hiz" yerine "GameManager.instance.moveSpeed" kullanıyoruz.
             fizik.velocity = new Vector2(moveX * GameManager.instance.moveSpeed, moveY * GameManager.instance.moveSpeed);
         }
-    }
-    
-    void OnTriggerStay2D(Collider2D other)
-    {
-        // Eğer çarptığımız objenin etiketi "Family" ise
-        if (other.CompareTag("Family"))
-        {
-            // Ve elimizde Kazma varsa
-            if (Kazma == true)
-            {
-                // Buzu azalt
-                buzCan -= Time.deltaTime * 20; // Saniyede 20 azalır (Hızlı olsun diye)
-                Debug.Log("Buz Kırılıyor: " + buzCan.ToString("F0"));
 
-                if (buzCan <= 0)
-                {
-                    Debug.Log("Aile Kurtarıldı!");
-                    
-                    // Çarptığımız objeyi (Aileyi/Buzu) yok et
-                    Destroy(other.gameObject);
-                }
+        // Yürüme Sesi
+        bool hareketEdiyor = (moveX != 0 || moveY != 0);
+
+        if (walkSource != null && walkSound != null)
+        {
+            if (hareketEdiyor)
+            {
+                if (!walkSource.isPlaying) walkSource.Play();
             }
             else
             {
-                // Kazması yoksa uyarabilirsin (Opsiyonel)
-                // Debug.Log("Bunu kırmak için KAZMA lazım!");
+                if (walkSource.isPlaying) walkSource.Stop();
             }
+        }
+    }
+
+    // --- YENİ MANTIK: BUZ KIRMA ---
+    // Bu fonksiyon Update içinde çağrıldığı için karakter dursa bile çalışır.
+    void BuzKirmaIslemi()
+    {
+        if (buzunUstunde && Kazma && hedefBuzObjesi != null)
+        {
+            buzCan -= Time.deltaTime * 20; 
+            
+            // Ses çalma kısmı (Aynen kalıyor)
+            if (Time.time >= nextBreakSoundTime && breakSound != null)
+            {
+                sfxSource.PlayOneShot(breakSound, 0.8f); 
+                nextBreakSoundTime = Time.time + 0.4f; 
+            }
+
+            // --- DEĞİŞİKLİK BURADA ---
+            if (buzCan <= 0)
+            {
+                Debug.Log("Aile Kurtarıldı - KAZANDIN!");
+                
+                Destroy(hedefBuzObjesi);
+                hedefBuzObjesi = null;
+                buzunUstunde = false;
+
+                // Kazanma Ekranını Aç
+                if (CanvasManager.instance != null)
+                {
+                    CanvasManager.instance.ShowWin();
+                }
+            }
+        }
+    }
+
+    // --- TETİKLEYİCİLER ---
+    // Artık OnTriggerStay yerine Enter ve Exit kullanıyoruz.
+    
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // İçeri girince "Buzun üstündeyim" de
+        if (other.CompareTag("Family"))
+        {
+            buzunUstunde = true;
+            hedefBuzObjesi = other.gameObject;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        // Dışarı çıkınca "Artık buzun üstünde değilim" de
+        if (other.CompareTag("Family"))
+        {
+            buzunUstunde = false;
+            hedefBuzObjesi = null;
         }
     }
 }
