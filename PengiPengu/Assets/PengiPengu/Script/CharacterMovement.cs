@@ -15,6 +15,8 @@ public class CharacterMovement : MonoBehaviour
 
     public GameObject atkiObjesi; // Editörden atkıyı buraya sürükleyeceğiz
     
+    public GameObject kazmaObjesi; // YENİ: Kazma görselini buraya atacağız
+    
     [Header("Ses Ayarları")]
     public AudioClip walkSound;   
     public AudioClip breakSound;  
@@ -54,6 +56,7 @@ public class CharacterMovement : MonoBehaviour
         karakterHareket();
         BuzKirmaIslemi(); // Yeni fonksiyonu her kare çalıştırıyoruz
         AtkiKontrol();
+        KazmaKontrol(); // Bunu eklemeyi unutma!
     }
     void AtkiKontrol()
     {
@@ -64,6 +67,15 @@ public class CharacterMovement : MonoBehaviour
             bool atkisiOlsun = GameManager.instance.healthUpgradeLevel >= 1;
             
             atkiObjesi.SetActive(atkisiOlsun);
+        }
+    }
+    void KazmaKontrol()
+    {
+        // GameManager var mı ve Kazma objesi atandı mı?
+        if (GameManager.instance != null && kazmaObjesi != null)
+        {
+            // GameManager'da kazma alındıysa (hasPickaxe == true) objeyi aç
+            kazmaObjesi.SetActive(GameManager.instance.hasPickaxe);
         }
     }
     void karakterHareket()
