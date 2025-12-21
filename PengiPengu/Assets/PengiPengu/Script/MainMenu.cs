@@ -10,8 +10,16 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene("IcePlace");
     }
 
+    public void Help()
+    {
+        SceneManager.LoadScene("Help");
+
+    }
+
     public void Exit()
     {
         Application.Quit();
     }
+    
+    
 }

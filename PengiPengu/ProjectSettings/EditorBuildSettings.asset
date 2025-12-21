@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/PengiPengu/Scenes/MainMenu.unity
     guid: cd59e638ab53846fb952212554623610
   - enabled: 1
+    path: Assets/PengiPengu/Scenes/Help.unity
+    guid: 472b4ae96c858431d9b329fd67dcd9ef
+  - enabled: 1
     path: Assets/PengiPengu/Scenes/IcePlace.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
