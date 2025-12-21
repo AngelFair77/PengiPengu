@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // Sahne ismini okumak için
-using TMPro; // TextMeshPro için
+using UnityEngine.SceneManagement; 
+using TMPro; 
 
 public class UpgradeManager : MonoBehaviour
 {
     [Header("Genel UI Bağlantıları")]
-    public GameObject upgradeMenuPanel;   // Canvas içindeki Upgrade Paneli
-    public TextMeshProUGUI fishCountText; // Paneldeki "Balık: 5" yazısı
+    public GameObject upgradeMenuPanel;   
+    public TextMeshProUGUI fishCountText; 
 
     // ---------------------------------------------------------
     // UPGRADE 1: CAN (ISI) SİSTEMİ
@@ -16,8 +16,8 @@ public class UpgradeManager : MonoBehaviour
     public Button healthUpgradeButton;       
     public TextMeshProUGUI healthButtonText; 
     
-    public int[] healthCosts = { 1, 5, 10 }; // Fiyatlar
-    public float heatIncreaseAmount = 20f;   // Her seviyede ne kadar artacak
+    public int[] healthCosts = { 1, 5, 10 }; 
+    public float heatIncreaseAmount = 20f;   
 
     // ---------------------------------------------------------
     // UPGRADE 2: HIZ (SPEED) SİSTEMİ
@@ -26,8 +26,16 @@ public class UpgradeManager : MonoBehaviour
     public Button speedUpgradeButton;       
     public TextMeshProUGUI speedButtonText; 
     
-    public int[] speedCosts = { 2, 6, 12 };  // Fiyatlar (İstediğin gibi değiştir)
-    public float speedIncreaseAmount = 1f;   // Her seviyede hız ne kadar artacak
+    public int[] speedCosts = { 2, 6, 12 };  
+    public float speedIncreaseAmount = 1f;   
+
+    // ---------------------------------------------------------
+    // UPGRADE 3: KAZMA (PICKAXE) SİSTEMİ (YENİ)
+    // ---------------------------------------------------------
+    [Header("Upgrade 3: Kazma (Pickaxe) Ayarları")]
+    public Button pickaxeButton;       
+    public TextMeshProUGUI pickaxeButtonText;
+    public int pickaxeCost = 25; // Tek seferlik fiyat
 
     private bool isMenuOpen = false;
 
@@ -36,20 +44,18 @@ public class UpgradeManager : MonoBehaviour
         // 1. SAHNE KONTROLÜ
         string activeScene = SceneManager.GetActiveScene().name;
         
-        // Buraya mağara sahnenin adını yaz (Boşlukları temizleyerek kontrol eder)
+        // "Cave" sahnesinde değilsek menüyü kapat ve dur.
         if (activeScene.Trim() != "Cave") 
         {
             if (isMenuOpen) CloseMenu();
             return; 
         }
 
-        // 2. MENÜ AÇMA / KAPAMA
+        // 2. MENÜ AÇMA / KAPAMA (E Tuşu)
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (isMenuOpen)
-                CloseMenu();
-            else
-                OpenMenu();
+            if (isMenuOpen) CloseMenu();
+            else OpenMenu();
         }
     }
 
@@ -66,113 +72,154 @@ public class UpgradeManager : MonoBehaviour
         upgradeMenuPanel.SetActive(false); 
     }
 
-    // --- FONKSİYON 1: CAN YÜKSELTME ---
+    // =========================================================
+    // SATIN ALMA FONKSİYONLARI
+    // =========================================================
+
+    // --- 1. CAN YÜKSELTME ---
     public void BuyHealthUpgrade()
     {
         int currentLevel = GameManager.instance.healthUpgradeLevel;
 
-        if (currentLevel >= 3) return; // Max seviye kontrolü
-
-        // Dizi taşma kontrolü
-        if (currentLevel >= healthCosts.Length) return;
+        if (currentLevel >= 3 || currentLevel >= healthCosts.Length) return;
 
         int cost = healthCosts[currentLevel];
 
         if (GameManager.instance.fishCount >= cost)
         {
-            // Ödeme ve İşlem
             GameManager.instance.fishCount -= cost;
             GameManager.instance.healthUpgradeLevel++;
             GameManager.instance.maxHeat += heatIncreaseAmount;
-            
-            // Canı fulle
-            GameManager.instance.currentHeat = GameManager.instance.maxHeat;
+            GameManager.instance.currentHeat = GameManager.instance.maxHeat; // Canı fulle
 
-            // Görselleri Güncelle
-            UpdateHealthBarVisuals(); // Can barını uzat
-            UpdateUI(); // Menüdeki fiyatları yenile
-            
-            // Ana Ekrandaki Balık Sayısını Güncelle
-            if (CanvasManager.instance != null)
-                CanvasManager.instance.UpdateFishUI();
+            UpdateHealthBarVisuals(); 
+            UpdateAllUI();
             
             Debug.Log("Can Yükseltildi!");
         }
         else
         {
-            Debug.Log("Yetersiz Balık (Can Upgrade için)!");
+            Debug.Log("Yetersiz Balık (Can)!");
         }
     }
 
-    // --- FONKSİYON 2: HIZ YÜKSELTME ---
+    // --- 2. HIZ YÜKSELTME ---
     public void BuySpeedUpgrade()
     {
         int currentLevel = GameManager.instance.speedUpgradeLevel;
 
-        if (currentLevel >= 3) return; // Max seviye kontrolü
-
-        // Dizi taşma kontrolü
-        if (currentLevel >= speedCosts.Length) return;
+        if (currentLevel >= 3 || currentLevel >= speedCosts.Length) return;
 
         int cost = speedCosts[currentLevel];
 
         if (GameManager.instance.fishCount >= cost)
         {
-            // Ödeme ve İşlem
             GameManager.instance.fishCount -= cost;
             GameManager.instance.speedUpgradeLevel++;
             GameManager.instance.moveSpeed += speedIncreaseAmount;
 
-            // Görselleri Güncelle
-            UpdateUI(); // Menüdeki fiyatları yenile
-
-            // Ana Ekrandaki Balık Sayısını Güncelle
-            if (CanvasManager.instance != null)
-                CanvasManager.instance.UpdateFishUI();
-
-            Debug.Log("Hız Yükseltildi! Yeni Hız: " + GameManager.instance.moveSpeed);
+            UpdateAllUI();
+            Debug.Log("Hız Yükseltildi!");
         }
         else
         {
-            Debug.Log("Yetersiz Balık (Hız Upgrade için)!");
+            Debug.Log("Yetersiz Balık (Hız)!");
         }
     }
 
-    // --- UI GÜNCELLEME ---
+    // --- 3. KAZMA SATIN ALMA (YENİ) ---
+    public void BuyPickaxeUpgrade()
+    {
+        if (GameManager.instance.hasPickaxe) return; // Zaten varsa işlem yapma
+
+        if (GameManager.instance.fishCount >= pickaxeCost)
+        {
+            GameManager.instance.fishCount -= pickaxeCost;
+            
+            // GameManager'a kaydet
+            GameManager.instance.hasPickaxe = true;
+
+            // Karakterdeki değişkeni güncelle
+            if (CharacterMovement.instance != null)
+                CharacterMovement.instance.Kazma = true;
+
+            UpdateAllUI();
+            Debug.Log("Kazma Satın Alındı!");
+        }
+        else
+        {
+            Debug.Log("Yetersiz Balık (Kazma)!");
+        }
+    }
+
+    // =========================================================
+    // UI GÜNCELLEME (GÜVENLİ MOD)
+    // =========================================================
+
+    void UpdateAllUI()
+    {
+        UpdateUI(); // Upgrade Paneli
+        if (CanvasManager.instance != null) CanvasManager.instance.UpdateFishUI(); // Ana Ekran Balık Sayısı
+    }
+
     void UpdateUI()
     {
-        // Balık Sayısı
+        if (GameManager.instance == null) return;
+
+        // --- BALIK SAYISI ---
         if (fishCountText != null)
             fishCountText.text = "Balık: " + GameManager.instance.fishCount;
 
-        // 1. CAN BUTONU DURUMU
-        int hpLevel = GameManager.instance.healthUpgradeLevel;
-        if (hpLevel < 3)
+        // --- CAN BUTONU ---
+        if (healthButtonText != null && healthUpgradeButton != null)
         {
-            healthButtonText.text = "Isı Kapasitesi (+20)\n(Lv " + (hpLevel + 1) + ")\nFiyat: " + healthCosts[hpLevel];
-            healthUpgradeButton.interactable = true;
-        }
-        else
-        {
-            healthButtonText.text = "Isı: MAX";
-            healthUpgradeButton.interactable = false;
+            int hpLevel = GameManager.instance.healthUpgradeLevel;
+            if (hpLevel < 3 && hpLevel < healthCosts.Length)
+            {
+                healthButtonText.text = "Isı Kapasitesi (+20)\n(Lv " + (hpLevel + 1) + ")\nFiyat: " + healthCosts[hpLevel];
+                healthUpgradeButton.interactable = true;
+            }
+            else
+            {
+                healthButtonText.text = "Isı: MAX";
+                healthUpgradeButton.interactable = false;
+            }
         }
 
-        // 2. HIZ BUTONU DURUMU
-        int spdLevel = GameManager.instance.speedUpgradeLevel;
-        if (spdLevel < 3)
+        // --- HIZ BUTONU ---
+        if (speedButtonText != null && speedUpgradeButton != null)
         {
-            speedButtonText.text = "Hız Arttır (+" + speedIncreaseAmount + ")\n(Lv " + (spdLevel + 1) + ")\nFiyat: " + speedCosts[spdLevel];
-            speedUpgradeButton.interactable = true;
+            int spdLevel = GameManager.instance.speedUpgradeLevel;
+            if (spdLevel < 3 && spdLevel < speedCosts.Length)
+            {
+                speedButtonText.text = "Hız Arttır (+" + speedIncreaseAmount + ")\n(Lv " + (spdLevel + 1) + ")\nFiyat: " + speedCosts[spdLevel];
+                speedUpgradeButton.interactable = true;
+            }
+            else
+            {
+                speedButtonText.text = "Hız: MAX";
+                speedUpgradeButton.interactable = false;
+            }
         }
-        else
+
+        // --- KAZMA BUTONU (YENİ) ---
+        if (pickaxeButtonText != null && pickaxeButton != null)
         {
-            speedButtonText.text = "Hız: MAX";
-            speedUpgradeButton.interactable = false;
+            bool hasIt = GameManager.instance.hasPickaxe;
+            if (!hasIt)
+            {
+                pickaxeButtonText.text = "Kazma Satın Al\nFiyat: " + pickaxeCost;
+                pickaxeButton.interactable = true;
+            }
+            else
+            {
+                pickaxeButtonText.text = "Kazma\n(SAHİPSİN)";
+                pickaxeButton.interactable = false;
+            }
         }
     }
 
-    // Can Barı Görselini Güncelleme Yardımcısı
+    // Helper: Can barı görselini güncelleme
     void UpdateHealthBarVisuals()
     {
         GameObject sliderObj = GameObject.Find("HeatSlider");

@@ -4,6 +4,10 @@ public class CharacterMovement : MonoBehaviour
 {
     public static CharacterMovement instance;
     private Rigidbody2D fizik;
+
+    public bool Kazma = false;
+    
+    public float buzCan = 100f; // Buzun canını burada tutuyoruz
     
     // ARTIK BURADAKİ "int Hiz = 5;" SATIRINI SİLİYORUZ VEYA KULLANMIYORUZ.
 
@@ -23,6 +27,10 @@ public class CharacterMovement : MonoBehaviour
     void Start()
     {
         fizik = GetComponent<Rigidbody2D>();
+        if (GameManager.instance != null)
+        {
+            Kazma = GameManager.instance.hasPickaxe;
+        }
     }
 
     void Update()
@@ -59,6 +67,34 @@ public class CharacterMovement : MonoBehaviour
             // DEĞİŞİKLİK BURADA:
             // "Hiz" yerine "GameManager.instance.moveSpeed" kullanıyoruz.
             fizik.velocity = new Vector2(moveX * GameManager.instance.moveSpeed, moveY * GameManager.instance.moveSpeed);
+        }
+    }
+    
+    void OnTriggerStay2D(Collider2D other)
+    {
+        // Eğer çarptığımız objenin etiketi "Family" ise
+        if (other.CompareTag("Family"))
+        {
+            // Ve elimizde Kazma varsa
+            if (Kazma == true)
+            {
+                // Buzu azalt
+                buzCan -= Time.deltaTime * 20; // Saniyede 20 azalır (Hızlı olsun diye)
+                Debug.Log("Buz Kırılıyor: " + buzCan.ToString("F0"));
+
+                if (buzCan <= 0)
+                {
+                    Debug.Log("Aile Kurtarıldı!");
+                    
+                    // Çarptığımız objeyi (Aileyi/Buzu) yok et
+                    Destroy(other.gameObject);
+                }
+            }
+            else
+            {
+                // Kazması yoksa uyarabilirsin (Opsiyonel)
+                // Debug.Log("Bunu kırmak için KAZMA lazım!");
+            }
         }
     }
 }

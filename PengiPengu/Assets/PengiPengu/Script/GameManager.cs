@@ -3,6 +3,9 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+    
+    public bool hasPickaxe = false; // Oyunun başında kazmamız yok
+    
 
     [Header("Oyun Kaynakları")]
     public int fishCount = 0; // Toplanan Balık
