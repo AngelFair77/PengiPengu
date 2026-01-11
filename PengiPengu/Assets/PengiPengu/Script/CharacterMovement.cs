@@ -14,7 +14,8 @@ public class CharacterMovement : MonoBehaviour
     // -----------------------------
 
     public GameObject atkiObjesi; // Editörden atkıyı buraya sürükleyeceğiz
-    public GameObject SapkaObjesi; // Editörden atkıyı buraya sürükleyeceğiz
+    public GameObject SapkaObjesi; 
+    public GameObject OltaObjesi; 
     
     public GameObject kazmaObjesi; // YENİ: Kazma görselini buraya atacağız
     
@@ -177,6 +178,12 @@ public class CharacterMovement : MonoBehaviour
             animator.SetBool("vurma", true);
             hedefBuzObjesi = other.gameObject;
         }
+
+        if (other.CompareTag("cukur"))
+        {
+            Debug.Log("temasta");
+            OltaObjesi.SetActive(true);
+        }
     }
 
     void OnTriggerExit2D(Collider2D other)
@@ -187,6 +194,11 @@ public class CharacterMovement : MonoBehaviour
             buzunUstunde = false;
             animator.SetBool("vurma", false);
             hedefBuzObjesi = null;
+        }
+        if (other.CompareTag("cukur"))
+        {
+            Debug.Log("temasta");
+            OltaObjesi.SetActive(false);
         }
     }
 }
