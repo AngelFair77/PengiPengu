@@ -14,6 +14,7 @@ public class CharacterMovement : MonoBehaviour
     // -----------------------------
 
     public GameObject atkiObjesi; // Editörden atkıyı buraya sürükleyeceğiz
+    public GameObject SapkaObjesi; // Editörden atkıyı buraya sürükleyeceğiz
     
     public GameObject kazmaObjesi; // YENİ: Kazma görselini buraya atacağız
     
@@ -22,8 +23,11 @@ public class CharacterMovement : MonoBehaviour
     public AudioClip breakSound;  
     
     private AudioSource walkSource; 
-    private AudioSource sfxSource;  
+    private AudioSource sfxSource;
 
+    public Animator animator;
+    
+    
     private float nextBreakSoundTime = 0f;
 
     void Awake()
@@ -56,6 +60,7 @@ public class CharacterMovement : MonoBehaviour
         karakterHareket();
         BuzKirmaIslemi(); // Yeni fonksiyonu her kare çalıştırıyoruz
         AtkiKontrol();
+        SapkaKontrol();
         KazmaKontrol(); // Bunu eklemeyi unutma!
     }
     void AtkiKontrol()
@@ -67,6 +72,17 @@ public class CharacterMovement : MonoBehaviour
             bool atkisiOlsun = GameManager.instance.healthUpgradeLevel >= 1;
             
             atkiObjesi.SetActive(atkisiOlsun);
+        }
+    }
+    void SapkaKontrol()
+    {
+        // GameManager var mı ve Atkı objesi atandı mı?
+        if (GameManager.instance != null && atkiObjesi != null)
+        {
+            // EĞER Health Upgrade Level 1 veya daha büyükse atkıyı göster
+            bool SapkasiOlsun = GameManager.instance.healthUpgradeLevel >= 2;
+            
+            SapkaObjesi.SetActive(SapkasiOlsun);
         }
     }
     void KazmaKontrol()
@@ -123,8 +139,7 @@ public class CharacterMovement : MonoBehaviour
     {
         if (buzunUstunde && Kazma && hedefBuzObjesi != null)
         {
-            buzCan -= Time.deltaTime * 20; 
-            
+            buzCan -= Time.deltaTime * 20;
             // Ses çalma kısmı (Aynen kalıyor)
             if (Time.time >= nextBreakSoundTime && breakSound != null)
             {
@@ -159,6 +174,7 @@ public class CharacterMovement : MonoBehaviour
         if (other.CompareTag("Family"))
         {
             buzunUstunde = true;
+            animator.SetBool("vurma", true);
             hedefBuzObjesi = other.gameObject;
         }
     }
@@ -169,6 +185,7 @@ public class CharacterMovement : MonoBehaviour
         if (other.CompareTag("Family"))
         {
             buzunUstunde = false;
+            animator.SetBool("vurma", false);
             hedefBuzObjesi = null;
         }
     }
